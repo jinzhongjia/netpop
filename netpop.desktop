@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Netpop
-Comment=Wi-Fi / network popup for NetworkManager
-Exec=netpop --daemon
-Icon=network-wireless
-NoDisplay=true
-X-GNOME-Autostart-enabled=true

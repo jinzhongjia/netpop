@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Netpop
+GenericName=Network Settings
+Comment=Manage Wi-Fi, wired, VPN and WireGuard connections
+Exec=netpop --show
+Icon=network-wireless
+Terminal=false
+Categories=Network;Settings;
+Keywords=wifi;wireless;network;vpn;wireguard;hotspot;
+StartupNotify=false
+X-GNOME-Autostart-enabled=true

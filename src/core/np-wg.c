@@ -1,0 +1,176 @@
+#include "np-wg.h"
+
+#include <string.h>
+#include <sys/random.h>
+
+/*
+ * X25519，基于 TweetNaCl（公有领域）的实现：常数时间、无外部依赖。
+ * 只用于由私钥计算公钥，不在热点路径上，性能无关紧要。
+ */
+typedef int64_t gf[16];
+
+static const gf k121665 = { 0xDB41, 1 };
+
+static void car25519(gf o)
+{
+    for (int i = 0; i < 16; i++) {
+        o[i] += (1LL << 16);
+        int64_t c = o[i] >> 16;
+        o[(i + 1) * (i < 15)] += c - 1 + 37 * (c - 1) * (i == 15);
+        o[i] -= c * (1LL << 16);
+    }
+}
+
+static void sel25519(gf p, gf q, int b)
+{
+    int64_t c = ~(b - 1);
+    for (int i = 0; i < 16; i++) {
+        int64_t t = c & (p[i] ^ q[i]);
+        p[i] ^= t;
+        q[i] ^= t;
+    }
+}
+
+static void pack25519(uint8_t *o, const gf n)
+{
+    gf m, t;
+    for (int i = 0; i < 16; i++) t[i] = n[i];
+    car25519(t);
+    car25519(t);
+    car25519(t);
+    for (int j = 0; j < 2; j++) {
+        m[0] = t[0] - 0xffed;
+        for (int i = 1; i < 15; i++) {
+            m[i] = t[i] - 0xffff - ((m[i - 1] >> 16) & 1);
+            m[i - 1] &= 0xffff;
+        }
+        m[15] = t[15] - 0x7fff - ((m[14] >> 16) & 1);
+        int b = (m[15] >> 16) & 1;
+        m[14] &= 0xffff;
+        sel25519(t, m, 1 - b);
+    }
+    for (int i = 0; i < 16; i++) {
+        o[2 * i] = t[i] & 0xff;
+        o[2 * i + 1] = (uint8_t)(t[i] >> 8);
+    }
+}
+
+static void unpack25519(gf o, const uint8_t *n)
+{
+    for (int i = 0; i < 16; i++) o[i] = n[2 * i] + ((int64_t)n[2 * i + 1] << 8);
+    o[15] &= 0x7fff;
+}
+
+static void fadd(gf o, const gf a, const gf b) { for (int i = 0; i < 16; i++) o[i] = a[i] + b[i]; }
+static void fsub(gf o, const gf a, const gf b) { for (int i = 0; i < 16; i++) o[i] = a[i] - b[i]; }
+
+static void fmul(gf o, const gf a, const gf b)
+{
+    int64_t t[31] = { 0 };
+    for (int i = 0; i < 16; i++)
+        for (int j = 0; j < 16; j++) t[i + j] += a[i] * b[j];
+    for (int i = 0; i < 15; i++) t[i] += 38 * t[i + 16];
+    for (int i = 0; i < 16; i++) o[i] = t[i];
+    car25519(o);
+    car25519(o);
+}
+
+static void fsq(gf o, const gf a) { fmul(o, a, a); }
+
+static void inv25519(gf o, const gf in)
+{
+    gf c;
+    for (int a = 0; a < 16; a++) c[a] = in[a];
+    for (int a = 253; a >= 0; a--) {
+        fsq(c, c);
+        if (a != 2 && a != 4) fmul(c, c, in);
+    }
+    for (int a = 0; a < 16; a++) o[a] = c[a];
+}
+
+void np_x25519(uint8_t out[32], const uint8_t scalar[32], const uint8_t point[32])
+{
+    uint8_t z[32];
+    gf x, a, b, c, d, e, f;
+    for (int i = 0; i < 31; i++) z[i] = scalar[i];
+    z[31] = (scalar[31] & 127) | 64;
+    z[0] &= 248;
+    unpack25519(x, point);
+    for (int i = 0; i < 16; i++) {
+        b[i] = x[i];
+        d[i] = a[i] = c[i] = 0;
+    }
+    a[0] = d[0] = 1;
+    for (int i = 254; i >= 0; --i) {
+        int r = (z[i >> 3] >> (i & 7)) & 1;
+        sel25519(a, b, r);
+        sel25519(c, d, r);
+        fadd(e, a, c);
+        fsub(a, a, c);
+        fadd(c, b, d);
+        fsub(b, b, d);
+        fsq(d, e);
+        fsq(f, a);
+        fmul(a, c, a);
+        fmul(c, b, e);
+        fadd(e, a, c);
+        fsub(a, a, c);
+        fsq(b, a);
+        fsub(c, d, f);
+        fmul(a, c, k121665);
+        fadd(a, a, d);
+        fmul(c, c, a);
+        fmul(a, d, f);
+        fmul(d, b, x);
+        fsq(b, e);
+        sel25519(a, b, r);
+        sel25519(c, d, r);
+    }
+    inv25519(c, c);
+    fmul(a, a, c);
+    pack25519(out, a);
+    memset(z, 0, sizeof z);
+}
+
+void np_x25519_base(uint8_t out[32], const uint8_t scalar[32])
+{
+    static const uint8_t nine[32] = { 9 };
+    np_x25519(out, scalar, nine);
+}
+
+gboolean np_wg_key_valid(const char *b64)
+{
+    guint8 k[32];
+    gboolean ok = b64 && nm_utils_base64secret_decode(b64, sizeof k, k);
+    memset(k, 0, sizeof k);
+    return ok;
+}
+
+char *np_wg_generate_private_key(void)
+{
+    uint8_t k[32];
+    gsize got = 0;
+    while (got < sizeof k) {
+        ssize_t n = getrandom(k + got, sizeof k - got, 0);
+        if (n > 0) got += (gsize)n;
+    }
+    k[0] &= 248;
+    k[31] = (k[31] & 127) | 64;
+    char *s = g_base64_encode(k, sizeof k);
+    memset(k, 0, sizeof k);
+    return s;
+}
+
+char *np_wg_public_key(const char *priv)
+{
+    uint8_t k[32], pub[32];
+    if (!priv || !nm_utils_base64secret_decode(priv, sizeof k, k)) return NULL;
+    np_x25519_base(pub, k);
+    memset(k, 0, sizeof k);
+    return g_base64_encode(pub, sizeof pub);
+}
+
+NMConnection *np_wg_import(const char *path, GError **error)
+{
+    return nm_conn_wireguard_import(path, error);
+}

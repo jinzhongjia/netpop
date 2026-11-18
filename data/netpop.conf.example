@@ -1,0 +1,24 @@
+# netpop 配置示例：复制到 ~/.config/netpop/netpop.conf
+# 修改后执行 `netpop --quit && netpop --daemon` 生效（颜色和样式文件每次弹出时自动重新读取）
+
+[appearance]
+# 定义 @bg @surface @fg @subtle @muted @blue @red @green 的 GTK CSS 文件（@define-color）
+#colors = ~/.config/theme/current/waybar.css
+# 追加的自定义 CSS
+#style = ~/.config/netpop/style.css
+#width = 368
+
+[popup]
+# top-left | top | top-right | bottom-left | bottom | bottom-right | left | right | center
+#anchor = top-right
+#margin-top = 6
+#margin-right = 8
+#margin-bottom = 0
+#margin-left = 0
+#hide-on-focus-loss = true
+
+[agent]
+# 作为 NetworkManager Secret Agent 处理密码请求（替代 nm-applet）
+#enabled = true
+# 用 Secret Service 保存“仅当前用户”的密钥（兼容 nm-applet 以前保存的条目）
+#keyring = true

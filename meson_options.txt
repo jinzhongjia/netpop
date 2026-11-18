@@ -1,0 +1,4 @@
+option('layer_shell', type: 'feature', value: 'auto',
+       description: 'Show the popup as a wlr-layer-shell surface (needs gtk4-layer-shell)')
+option('keyring', type: 'feature', value: 'auto',
+       description: 'Store agent-owned secrets in the Secret Service (needs libsecret)')
