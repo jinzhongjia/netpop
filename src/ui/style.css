@@ -11,7 +11,7 @@ window.netpop { background: transparent; }
 }
 /* layer-shell 有合成器模糊（Hyprland layerrule blur），保留轻微透明 */
 window.layer .panel {
-  background-color: rgb(from @bg r g b / 0.92);
+  background-color: rgb(from @bg r g b / 0.97);
   border-radius: 14px;
   border: 1px solid alpha(@muted, 0.35);
 }
