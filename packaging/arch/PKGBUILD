@@ -12,7 +12,7 @@ checkdepends=('desktop-file-utils')
 optdepends=('ttf-jetbrains-mono-nerd: icons in the network list')
 conflicts=('netpop-git')
 source=("$url/releases/download/v$pkgver/$pkgname-$pkgver.tar.xz")
-sha256sums=('SKIP')
+sha256sums=('f2f0a58b94ca0ce8bdb5d29ead6a465e93bdc991cb599c0f1a169b32d748b67f')
 
 build() {
   arch-meson "$pkgname-$pkgver" build -Dlayer_shell=enabled -Dkeyring=enabled
