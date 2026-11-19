@@ -16,7 +16,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed base-devel git meson ninja pkgconf github-cli \
             gtk4 networkmanager libsecret gtk4-layer-shell desktop-file-utils
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Check version matches tag

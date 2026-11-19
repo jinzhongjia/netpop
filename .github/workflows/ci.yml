@@ -38,7 +38,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed base-devel git clang meson ninja pkgconf \
             gtk4 networkmanager libsecret gtk4-layer-shell desktop-file-utils
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Configure
         run: meson setup build ${{ matrix.options }} -Dwerror=true
       - name: Build
@@ -61,7 +61,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed base-devel git meson ninja pkgconf \
             gtk4 networkmanager libsecret gtk4-layer-shell
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Configure
         run: meson setup build -Db_sanitize=address,undefined -Db_lundef=false
       - name: Test core
@@ -74,7 +74,7 @@ jobs:
     name: Ubuntu 24.04 (older GTK / libnm)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -96,7 +96,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed base-devel git meson ninja pkgconf \
             gtk4 networkmanager libsecret gtk4-layer-shell desktop-file-utils
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: meson dist
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
