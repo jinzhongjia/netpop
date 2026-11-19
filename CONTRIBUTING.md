@@ -24,9 +24,38 @@ netpop --quit
 
 ## 代码组织
 
-- `src/core/`：不依赖 GTK。新增设置项或校验逻辑时，**先在这里实现并补单元测试**，再接入界面。
-- `src/ui/`：每个页面一个 `np-page-*.c`。界面只通过 `NpConnModel` 读写连接，不直接拼 NM 设置。
-- `tests/`：GLib 测试，`meson test` 统一运行。测试不能依赖正在运行的 NetworkManager 或显示器。
+```
+src/
+├── core/                 与界面无关，可脱离显示器和 NetworkManager 守护进程单元测试
+│   ├── np-conn-model     编辑器数据模型 ⇄ NMConnection（全部校验都在这里）
+│   ├── np-secrets        Secret Agent 的决策逻辑：要问哪些字段、如何应答
+│   ├── np-keyring        Secret Service 存取（nm-applet 兼容格式）
+│   ├── np-ap             AP 合并与排序
+│   ├── np-wg             X25519 / WireGuard 密钥、配置导入
+│   ├── np-config         配置文件
+│   └── np-util           SSID、安全类型、地址 / 路由 / 键值解析
+├── ui/                   GTK4 界面
+│   ├── np-app            窗口、导航栈、弹出 / 收起、刷新调度、通知
+│   ├── np-actions        对 NM 的异步操作与结果跟踪
+│   ├── np-agent          Secret Agent
+│   ├── np-page-*         各页面，每个页面一个文件
+│   ├── np-widgets        统一外观的小部件和表单构造器
+│   └── style.css         样式（只使用调色板中的命名颜色）
+└── main.c                命令行入口
+tests/                    GLib 测试，不能依赖正在运行的 NetworkManager 或显示器
+```
+
+设计约定：
+
+- 新增设置项或校验逻辑时，**先在 `src/core/` 中实现并补单元测试**，再接入界面。界面只通过 `NpConnModel` 读写连接，不直接拼 NM 设置。
+- 密钥类字段为空表示“保持不变”。
+- NM 状态变化统一通过 `np_queue_refresh()` 合并刷新；面板隐藏时只标记为需要刷新。
+- layer-shell 模式下，“点击外面收起”靠面板下方一层透明的 `netpop-backdrop` 浮层实现（layer surface 没有窗口激活状态）。不要给这个 namespace 加 blur。
+
+## 已知问题
+
+- 用 Tab 键切换焦点经过下拉框时，GTK 4.24 会在终端输出 `gtk_root_get_focus: assertion` 警告。这是 GTK 内部的问题，不影响功能。
+- VPN 使用通用的键值编辑方式，没有接入各 VPN 插件自带的图形配置界面。
 
 ## 提交前检查
 
