@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* 密码页：根据 NpSecretRequest 动态生成输入框 */
 #include "np-app.h"
 #include "np-pages.h"

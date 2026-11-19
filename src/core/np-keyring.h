@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-keyring.h — 通过 Secret Service（gnome-keyring 等）保存 agent 拥有的密钥
  *
  * 条目格式与 nm-applet 完全一致，因此可以直接读取 nm-applet 以前保存的密码：

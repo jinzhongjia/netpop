@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-widgets.h — 统一外观的小部件与表单构造器 */
 #pragma once
 

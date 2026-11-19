@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* 连接编辑器：表单 ⇄ NpConnModel ⇄ NMConnection
  *
  * 打开已有连接时先异步取回密钥（Wi-Fi / 802.1X / WireGuard），再构建表单，

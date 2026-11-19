@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-conn-model.h — 连接编辑器的数据模型
  *
  * 编辑器界面只和 NpConnModel 打交道：

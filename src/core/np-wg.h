@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-wg.h — WireGuard 密钥工具（X25519）与配置导入 */
 #pragma once
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "np-ap.h"
 
 static NpApInput ap(const char *ssid, guint8 strength, guint32 rsn, gboolean active)

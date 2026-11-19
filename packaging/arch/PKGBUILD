@@ -1,0 +1,28 @@
+# Maintainer: jinzhongjia
+pkgname=netpop
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="GTK4 NetworkManager popup and connection editor (replaces nm-applet / nm-connection-editor)"
+arch=('x86_64' 'aarch64')
+url="https://github.com/jinzhongjia/netpop"
+license=('GPL-3.0-or-later')
+depends=('gtk4' 'libnm' 'glib2' 'libsecret' 'gtk4-layer-shell')
+makedepends=('meson' 'ninja')
+checkdepends=('desktop-file-utils')
+optdepends=('ttf-jetbrains-mono-nerd: icons in the network list')
+conflicts=('netpop-git')
+source=("$url/releases/download/v$pkgver/$pkgname-$pkgver.tar.xz")
+sha256sums=('SKIP')
+
+build() {
+  arch-meson "$pkgname-$pkgver" build -Dlayer_shell=enabled -Dkeyring=enabled
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}

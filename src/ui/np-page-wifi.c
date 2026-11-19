@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* 主页：Wi-Fi 开关、网络列表、其他连接的快捷切换 */
 #include "np-actions.h"
 #include "np-ap.h"

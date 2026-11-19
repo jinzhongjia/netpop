@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* netpop — NetworkManager 网络面板
  *
  *   netpop              切换显示 / 隐藏（首次运行会常驻）

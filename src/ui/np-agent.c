@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* NetworkManager Secret Agent：替代 nm-applet 处理密码请求
  *
  * 流程：

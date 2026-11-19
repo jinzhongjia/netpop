@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* 连接详情：运行状态 + 编辑 / 连接 / 断开 / 删除 */
 #include "np-actions.h"
 #include "np-app.h"

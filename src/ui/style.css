@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
 /* netpop 样式。颜色只使用调色板中的命名颜色，以便跟随主题。 */
 
 window.netpop, window.netpop-backdrop { background: transparent; }

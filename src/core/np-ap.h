@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-ap.h — 把扫描到的 AP 合并为“网络”（同 SSID 合一）并排序 */
 #pragma once
 

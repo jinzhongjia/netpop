@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-pages.h — 各页面的入口 */
 #pragma once
 

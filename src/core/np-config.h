@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-config.h — 用户配置（$XDG_CONFIG_HOME/netpop/netpop.conf，GKeyFile 格式）
  *
  * [appearance]

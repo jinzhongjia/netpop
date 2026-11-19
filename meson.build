@@ -1,6 +1,8 @@
 project('netpop', 'c',
   version: '0.2.0',
-  meson_version: '>= 0.64',
+  license: 'GPL-3.0-or-later',
+  license_files: 'LICENSE',
+  meson_version: '>= 1.1',
   default_options: [
     'c_std=gnu11',
     'warning_level=2',

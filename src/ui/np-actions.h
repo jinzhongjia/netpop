@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-actions.h — 对 NetworkManager 的操作（异步）以及结果通知 */
 #pragma once
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "np-ap.h"
 
 void np_network_free(NpNetwork *n)

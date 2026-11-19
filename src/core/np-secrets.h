@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-secrets.h — Secret Agent 的决策逻辑（与 D-Bus / 界面无关）
  *
  * NetworkManager 向 agent 请求某个设置（setting）的密钥时，这里决定：

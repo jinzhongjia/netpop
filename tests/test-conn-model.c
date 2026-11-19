@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "np-conn-model.h"
 
 #include <sys/socket.h>

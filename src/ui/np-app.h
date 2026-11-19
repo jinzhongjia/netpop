@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-app.h — 应用全局状态：窗口、页面导航、弹出 / 收起、通知、刷新调度 */
 #pragma once
 

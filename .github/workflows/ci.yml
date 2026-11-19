@@ -2,31 +2,103 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  build-test:
+  arch:
+    name: Arch (${{ matrix.name }})
     runs-on: ubuntu-latest
     container: archlinux:latest
     strategy:
+      fail-fast: false
       matrix:
-        # 完整功能，以及去掉可选依赖的最小构建
-        features:
-          - "-Dlayer_shell=enabled -Dkeyring=enabled"
-          - "-Dlayer_shell=disabled -Dkeyring=disabled"
+        include:
+          - name: full
+            options: -Dlayer_shell=enabled -Dkeyring=enabled
+            cc: gcc
+          - name: minimal
+            options: -Dlayer_shell=disabled -Dkeyring=disabled
+            cc: gcc
+          - name: clang
+            options: -Dlayer_shell=enabled -Dkeyring=enabled
+            cc: clang
+    env:
+      CC: ${{ matrix.cc }}
     steps:
-      - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
-          pacman -Syu --noconfirm --needed base-devel meson ninja pkgconf \
+          pacman -Syu --noconfirm --needed base-devel git clang meson ninja pkgconf \
             gtk4 networkmanager libsecret gtk4-layer-shell desktop-file-utils
+      - uses: actions/checkout@v4
       - name: Configure
-        run: meson setup build ${{ matrix.features }} -Dwerror=true
+        run: meson setup build ${{ matrix.options }} -Dwerror=true
       - name: Build
         run: meson compile -C build
       - name: Test
         run: meson test -C build --print-errorlogs
-      - name: Test (AddressSanitizer)
+      - name: Upload test log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testlog-${{ matrix.name }}
+          path: build/meson-logs/
+
+  sanitizers:
+    name: Arch (ASan + UBSan)
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install dependencies
         run: |
-          meson setup build-asan -Db_sanitize=address,undefined -Db_lundef=false ${{ matrix.features }}
-          meson test -C build-asan --print-errorlogs --suite core
+          pacman -Syu --noconfirm --needed base-devel git meson ninja pkgconf \
+            gtk4 networkmanager libsecret gtk4-layer-shell
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: meson setup build -Db_sanitize=address,undefined -Db_lundef=false
+      - name: Test core
+        env:
+          ASAN_OPTIONS: detect_leaks=1
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        run: meson test -C build --suite core --print-errorlogs
+
+  ubuntu:
+    name: Ubuntu 24.04 (older GTK / libnm)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends meson ninja-build pkg-config \
+            libgtk-4-dev libnm-dev libsecret-1-dev desktop-file-utils
+      - name: Configure
+        run: meson setup build -Dlayer_shell=auto
+      - name: Build
+        run: meson compile -C build
+      - name: Test
+        run: meson test -C build --print-errorlogs
+
+  dist:
+    name: Source tarball
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm --needed base-devel git meson ninja pkgconf \
+            gtk4 networkmanager libsecret gtk4-layer-shell desktop-file-utils
+      - uses: actions/checkout@v4
+      - name: meson dist
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          meson setup build
+          meson dist -C build --no-tests

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* “网络设置”：全部连接（按类型分组）、全局开关；“新建连接”：模板与导入 */
 #include "np-actions.h"
 #include "np-app.h"

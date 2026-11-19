@@ -1,5 +1,9 @@
 # netpop
 
+[![CI](https://github.com/jinzhongjia/netpop/actions/workflows/ci.yml/badge.svg)](https://github.com/jinzhongjia/netpop/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/jinzhongjia/netpop/actions/workflows/codeql.yml/badge.svg)](https://github.com/jinzhongjia/netpop/actions/workflows/codeql.yml)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
+
 基于 GTK4 和 libnm 的 NetworkManager 图形前端，用来替代 nm-applet 和 nm-connection-editor。
 平时以弹出面板的形式挂在状态栏上，同时提供完整的连接编辑功能，并作为 Secret Agent 处理密码请求。
 
@@ -32,7 +36,11 @@ meson test -C build        # 单元测试
 meson install -C build
 ```
 
-Arch Linux：`pacman -S meson gtk4 networkmanager libsecret gtk4-layer-shell`
+Arch Linux 可以直接用仓库里的 PKGBUILD 打包：
+
+```sh
+cd packaging/arch && makepkg -si
+```
 
 ## 使用
 
@@ -64,7 +72,8 @@ netpop 运行时会注册为 Secret Agent，因此应关闭 nm-applet，避免�
 
 ### Hyprland
 
-使用 layer-shell 时，可以给 `netpop` 这个 namespace 加 blur 的 layerrule。
+使用 layer-shell 时，面板固定在状态栏下方；点击面板以外的地方会自动收起（实现方式是在面板下面铺一层透明的 `netpop-backdrop` 浮层，状态栏区域不受影响）。
+可以给 `netpop` 这个 namespace 加 blur 的 layerrule，不要给 `netpop-backdrop` 加。
 以普通窗口运行时，窗口边框由合成器绘制，面板本身不再画边框。
 
 ## 配置
@@ -130,3 +139,7 @@ meson setup build && meson test -C build --print-errorlogs
 
 - 用 Tab 键切换焦点经过下拉框时，GTK 4.24 会在终端输出 `gtk_root_get_focus: assertion` 警告。这是 GTK 内部的问题，不影响功能。
 - VPN 使用通用的键值编辑方式，不加载各 VPN 插件自带的图形配置界面。
+
+## 许可证
+
+[GPL-3.0-or-later](LICENSE)

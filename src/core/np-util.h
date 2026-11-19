@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* np-util.h — 与界面无关的基础工具：SSID、频段、安全类型、地址/路由/列表解析 */
 #pragma once
 

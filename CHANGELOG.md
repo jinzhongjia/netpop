@@ -12,12 +12,15 @@
 - 配置文件 `~/.config/netpop/netpop.conf`（颜色、样式、弹出位置、agent 开关）。
 - 命令行参数 `--settings`、`--new`、`--edit ID`、`--version`。
 - 与界面无关的 core 库，以及对应的单元测试。
+- 支持 gtk4-layer-shell：面板固定在状态栏下方，带合成器模糊。
+- 项目基础设施：GPL-3.0-or-later 许可证、CI（Arch gcc/clang/最小构建、ASan/UBSan、Ubuntu 24.04）、CodeQL、按 tag 自动发布、Arch PKGBUILD、issue / PR 模板。
 
 ### 变更
 - 构建系统由 Makefile 改为 meson。
 - 代码从单个文件拆分为 core 和按页面划分的 ui 模块。
 
 ### 修复
+- layer-shell 模式下点击面板以外的地方不会收起：面板打开时在下面铺一层透明浮层接收点击。
 - 以普通窗口运行时出现双重边框：此模式下改由合成器绘制边框。
 - 以普通窗口运行时背景透明，背后的文字透出来。
 - 常驻实例收不到远程调用的命令行参数，导致 `--show`、`--hide`、`--quit` 都被当作切换显示。
