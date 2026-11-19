@@ -295,10 +295,12 @@ static void setup_layer_shell(void)
 #endif
 }
 
+#if HAVE_LAYER_SHELL
 static void on_backdrop_pressed(GtkGestureClick *g, int n, double x, double y, gpointer _)
 {
     np_popup_hide();
 }
+#endif
 
 static void setup_backdrop(void)
 {
