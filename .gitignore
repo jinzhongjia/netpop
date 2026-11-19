@@ -1,4 +1,7 @@
-build/
-_build/
+/build/
+/build-*/
+/_build/
 *.o
-/netpop
+*.swp
+compile_commands.json
+.cache/

@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    strategy:
+      matrix:
+        # 完整功能，以及去掉可选依赖的最小构建
+        features:
+          - "-Dlayer_shell=enabled -Dkeyring=enabled"
+          - "-Dlayer_shell=disabled -Dkeyring=disabled"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm --needed base-devel meson ninja pkgconf \
+            gtk4 networkmanager libsecret gtk4-layer-shell desktop-file-utils
+      - name: Configure
+        run: meson setup build ${{ matrix.features }} -Dwerror=true
+      - name: Build
+        run: meson compile -C build
+      - name: Test
+        run: meson test -C build --print-errorlogs
+      - name: Test (AddressSanitizer)
+        run: |
+          meson setup build-asan -Db_sanitize=address,undefined -Db_lundef=false ${{ matrix.features }}
+          meson test -C build-asan --print-errorlogs --suite core
