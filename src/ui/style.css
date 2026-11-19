@@ -1,6 +1,6 @@
 /* netpop 样式。颜色只使用调色板中的命名颜色，以便跟随主题。 */
 
-window.netpop { background: transparent; }
+window.netpop, window.netpop-backdrop { background: transparent; }
 
 /* ── 面板外框 ──
  * layer-shell：合成器不装饰，面板自己画圆角和描边。

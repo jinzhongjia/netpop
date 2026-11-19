@@ -12,6 +12,20 @@
 static NpApp app_state;
 NpApp *np = &app_state;
 
+/* layer-shell 模式下的“点外面关闭”：面板打开时在它下面铺一层全透明的浮层，
+ * 点到浮层就收起。layer surface 没有“窗口激活”状态，is-active 不会因为点了别处而变化。 */
+static GtkWindow *backdrop;
+
+static void backdrop_show(void)
+{
+    if (backdrop) gtk_window_present(backdrop);
+}
+
+static void backdrop_hide(void)
+{
+    if (backdrop) gtk_widget_set_visible(GTK_WIDGET(backdrop), FALSE);
+}
+
 /* ───────────── 样式 ───────────── */
 
 static char *read_resource(const char *name)
@@ -112,8 +126,20 @@ void np_queue_refresh(void)
     if (!np->refresh_id) np->refresh_id = g_timeout_add(80, refresh_cb, NULL);
 }
 
-void np_modal_begin(void) { np->modal++; }
-void np_modal_end(void) { if (np->modal > 0) np->modal--; }
+/* 文件选择器等普通窗口会被 TOP 层的浮层盖住，打开期间先撤掉浮层 */
+void np_modal_begin(void)
+{
+    if (np->modal++ == 0) backdrop_hide();
+}
+
+void np_modal_end(void)
+{
+    if (np->modal == 0 || --np->modal > 0 || !backdrop || !np_popup_visible()) return;
+    /* 同一层内后映射的在上面：先撤下面板，按“浮层 → 面板”的顺序重新映射 */
+    gtk_widget_set_visible(GTK_WIDGET(np->win), FALSE);
+    backdrop_show();
+    gtk_window_present(np->win);
+}
 
 /* ───────────── 导航 ───────────── */
 
@@ -188,6 +214,7 @@ void np_popup_show(void)
     }
     np->shown_at = g_get_monotonic_time();
     np->was_active = FALSE;
+    if (!np_popup_visible()) backdrop_show(); /* 先映射浮层，面板才会在它上面 */
     gtk_window_present(np->win);
     if (np->dirty) refresh_all();
     if (np->client) np_request_scan(15000);
@@ -198,6 +225,7 @@ void np_popup_hide(void)
     if (!np_popup_visible()) return;
     np_nav_home();
     gtk_widget_set_visible(GTK_WIDGET(np->win), FALSE);
+    backdrop_hide();
 }
 
 void np_popup_toggle(void)
@@ -266,6 +294,35 @@ static void setup_layer_shell(void)
 #endif
 }
 
+static void on_backdrop_pressed(GtkGestureClick *g, int n, double x, double y, gpointer _)
+{
+    np_popup_hide();
+}
+
+static void setup_backdrop(void)
+{
+#if HAVE_LAYER_SHELL
+    if (!np->layer || !np->config->hide_on_focus_loss) return;
+    backdrop = GTK_WINDOW(gtk_window_new());
+    gtk_window_set_application(backdrop, np->app);
+    gtk_window_set_decorated(backdrop, FALSE);
+    gtk_widget_add_css_class(GTK_WIDGET(backdrop), "netpop-backdrop");
+    gtk_layer_init_for_window(backdrop);
+    gtk_layer_set_namespace(backdrop, "netpop-backdrop");
+    gtk_layer_set_layer(backdrop, GTK_LAYER_SHELL_LAYER_TOP);
+    /* 四边锚定 + 独占区为 0：铺满 waybar 以外的区域，状态栏本身仍可点击 */
+    gtk_layer_set_anchor(backdrop, GTK_LAYER_SHELL_EDGE_TOP, TRUE);
+    gtk_layer_set_anchor(backdrop, GTK_LAYER_SHELL_EDGE_BOTTOM, TRUE);
+    gtk_layer_set_anchor(backdrop, GTK_LAYER_SHELL_EDGE_LEFT, TRUE);
+    gtk_layer_set_anchor(backdrop, GTK_LAYER_SHELL_EDGE_RIGHT, TRUE);
+    gtk_layer_set_keyboard_mode(backdrop, GTK_LAYER_SHELL_KEYBOARD_MODE_NONE);
+    GtkGesture *click = gtk_gesture_click_new();
+    gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(click), 0); /* 任意按键 */
+    g_signal_connect(click, "pressed", G_CALLBACK(on_backdrop_pressed), NULL);
+    gtk_widget_add_controller(GTK_WIDGET(backdrop), GTK_EVENT_CONTROLLER(click));
+#endif
+}
+
 static void on_css_error(GtkCssProvider *p, GtkCssSection *section, GError *error, gpointer _)
 {
     char *loc = gtk_css_section_to_string(section);
@@ -286,6 +343,7 @@ static void build_window(void)
     gtk_window_set_resizable(np->win, FALSE);
     gtk_widget_add_css_class(GTK_WIDGET(np->win), "netpop");
     setup_layer_shell();
+    setup_backdrop();
     /* 普通窗口模式下由合成器画边框和圆角，面板自己不再画，避免双重边框 */
     gtk_widget_add_css_class(GTK_WIDGET(np->win), np->layer ? "layer" : "toplevel");
 
