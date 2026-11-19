@@ -8,7 +8,7 @@ static void hex(const char *s, uint8_t out[32])
 {
     for (int i = 0; i < 32; i++) {
         unsigned v;
-        g_assert_cmpint(sscanf(s + 2 * i, "%2x", &v), ==, 1);
+        if (sscanf(s + 2 * i, "%2x", &v) != 1) g_error("bad hex test vector: %s", s);
         out[i] = (uint8_t)v;
     }
 }
