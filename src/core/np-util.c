@@ -261,18 +261,23 @@ NMIPRoute *np_ip_route_parse(int family, const char *line, GError **error)
     if (!np_parse_prefixed(family, tok[0], family == AF_INET6 ? 128 : 32, 0, &dest, &prefix, error))
         goto out;
 
-    for (guint i = 1; tok[i]; i++) {
+    /* 逐个消费记号；“via”和“metric”会额外消费后面的一个值 */
+    char **t = tok + 1;
+    while (*t) {
         guint64 v;
-        if (!strcmp(tok[i], "via") && tok[i + 1]) {
-            gw = tok[++i];
+        if (!strcmp(*t, "via") && t[1]) {
+            gw = t[1];
             if (!nm_utils_ipaddr_valid(family, gw)) goto bad;
-        } else if (!strcmp(tok[i], "metric") && tok[i + 1]) {
-            if (!parse_uint(tok[++i], G_MAXUINT32, &v)) goto bad;
+            t += 2;
+        } else if (!strcmp(*t, "metric") && t[1]) {
+            if (!parse_uint(t[1], G_MAXUINT32, &v)) goto bad;
             metric = (gint64)v;
-        } else if (!gw && nm_utils_ipaddr_valid(family, tok[i])) {
-            gw = tok[i];
-        } else if (metric < 0 && parse_uint(tok[i], G_MAXUINT32, &v)) {
+            t += 2;
+        } else if (!gw && nm_utils_ipaddr_valid(family, *t)) {
+            gw = *t++;
+        } else if (metric < 0 && parse_uint(*t, G_MAXUINT32, &v)) {
             metric = (gint64)v;
+            t++;
         } else {
             goto bad;
         }

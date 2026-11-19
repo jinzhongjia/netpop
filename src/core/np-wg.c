@@ -130,7 +130,7 @@ void np_x25519(uint8_t out[32], const uint8_t scalar[32], const uint8_t point[32
     inv25519(c, c);
     fmul(a, a, c);
     pack25519(out, a);
-    memset(z, 0, sizeof z);
+    explicit_bzero(z, sizeof z);
 }
 
 void np_x25519_base(uint8_t out[32], const uint8_t scalar[32])
@@ -143,7 +143,7 @@ gboolean np_wg_key_valid(const char *b64)
 {
     guint8 k[32];
     gboolean ok = b64 && nm_utils_base64secret_decode(b64, sizeof k, k);
-    memset(k, 0, sizeof k);
+    explicit_bzero(k, sizeof k);
     return ok;
 }
 
@@ -158,7 +158,7 @@ char *np_wg_generate_private_key(void)
     k[0] &= 248;
     k[31] = (k[31] & 127) | 64;
     char *s = g_base64_encode(k, sizeof k);
-    memset(k, 0, sizeof k);
+    explicit_bzero(k, sizeof k);
     return s;
 }
 
@@ -167,7 +167,7 @@ char *np_wg_public_key(const char *priv)
     uint8_t k[32], pub[32];
     if (!priv || !nm_utils_base64secret_decode(priv, sizeof k, k)) return NULL;
     np_x25519_base(pub, k);
-    memset(k, 0, sizeof k);
+    explicit_bzero(k, sizeof k);
     return g_base64_encode(pub, sizeof pub);
 }
 

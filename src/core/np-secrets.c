@@ -9,6 +9,7 @@ static void field_free(NpSecretField *f)
 {
     g_free(f->key);
     g_free(f->label);
+    if (f->value) explicit_bzero(f->value, strlen(f->value));
     g_free(f->value);
     g_free(f);
 }
@@ -214,7 +215,7 @@ void np_secret_item_free(NpSecretItem *it)
     if (!it) return;
     g_free(it->setting_name);
     g_free(it->key);
-    if (it->value) memset(it->value, 0, strlen(it->value));
+    if (it->value) explicit_bzero(it->value, strlen(it->value)); /* 不会被优化掉 */
     g_free(it->value);
     g_free(it);
 }
