@@ -21,7 +21,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends meson ninja-build pkg-config \
             libgtk-4-dev libnm-dev libsecret-1-dev
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v4
         with:
           languages: c-cpp
           build-mode: manual
@@ -30,4 +30,4 @@ jobs:
         run: |
           meson setup build
           meson compile -C build
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4
